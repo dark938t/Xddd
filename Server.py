@@ -6,22 +6,25 @@ import time
 import os
 import asyncio
 import random
+import json
+import base64
+import aiohttp
 from flask import Flask, request, render_template_string
 import threading
 from dotenv import load_dotenv
 
-# Güvenli bilgileri .env dosyasından yükle
 load_dotenv()
 
 # ==================== AYARLAR ====================
-# DİKKAT: Tüm gizli bilgiler .env dosyasından çekilir. 
-# Eğer .env dosyası yoksa bot hata verir.
 TOKEN = os.getenv("DISCORD_TOKEN")
-OWNER_ID = int(os.getenv("OWNER_ID")) # ID burada yok, .env'den okuyor
-WEB_PASSWORD = os.getenv("WEB_PASSWORD") # Şifre burada yok, .env'den okuyor
+OWNER_ID = int(os.getenv("OWNER_ID"))
+WEB_PASSWORD = os.getenv("WEB_PASSWORD", "ravex123")
 WEB_PORT = int(os.getenv("PORT", 8080))
 
-# Diğer ayarlar (Gizli değil, sabit ID'ler)
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_REPO = os.getenv("GITHUB_REPO") 
+GITHUB_FILE = "stok.json" 
+
 STAFF_ROLES = [1566432003560181891, 1560996761659515003]
 EXCLUSIVE_ROLE = 1560688907199184986
 PREMIUM_ROLE = 1560316365951475852
@@ -33,6 +36,55 @@ PREMIUM_EXCLUSIVE_CHANNEL = 1566423682371420273
 
 pending_netflix = {} 
 approved_netflix = {}
+
+# ==================== GITHUB VERİTABANI VE HAFIZA ====================
+STOK_DATA = {"steam": [], "netflix": [], "used": []}
+STOK_SHA = None
+STOK_LOCK = asyncio.Lock() # Aynı anda işlem yapmayı engeller
+
+async def github_get_headers():
+    return {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+
+async def read_github_stock():
+    global STOK_DATA, STOK_SHA
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=await github_get_headers()) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                content = base64.b64decode(data['content']).decode('utf-8')
+                STOK_DATA = json.loads(content)
+                STOK_SHA = data['sha']
+            else:
+                STOK_DATA = {"steam": [], "netflix": [], "used": []}
+                STOK_SHA = None
+
+async def write_github_stock():
+    global STOK_SHA
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE}"
+    content = base64.b64encode(json.dumps(STOK_DATA, indent=2).encode('utf-8')).decode('utf-8')
+    payload = {
+        "message": "Bot stok güncellemesi",
+        "content": content
+    }
+    if STOK_SHA:
+        payload["sha"] = STOK_SHA
+        
+    async with aiohttp.ClientSession() as session:
+        async with session.put(url, headers=await github_get_headers(), json=payload) as resp:
+            if resp.status in [200, 201]:
+                new_data = await resp.json()
+                STOK_SHA = new_data['content']['sha']
+                return True
+            print(f"GitHub Error: {await resp.text()}")
+            return False
+
+# Uygulama başlarken GitHub'dan stokları çek
+asyncio.run(read_github_stock())
+# =========================================================
 
 # ==================== WEB SİTESİ (FLASK) ====================
 web_app = Flask(__name__)
@@ -81,26 +133,37 @@ Steam Password: 12345"></textarea>
 </body>
 </html>"""
 
+def run_async(coro):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    return loop.run_until_complete(coro)
+
 @web_app.route('/', methods=['GET', 'POST'])
 def index():
+    global STOK_DATA
     if request.method == 'POST':
         if request.form.get('password') != WEB_PASSWORD:
             return render_template_string(HTML_PAGE, message="Incorrect password!", success=False)
         
         service = request.form.get('service')
-        accounts = request.form.get('accounts')
+        accounts_raw = request.form.get('accounts')
         
-        if not accounts.strip():
+        if not accounts_raw.strip():
             return render_template_string(HTML_PAGE, message="Accounts cannot be empty!", success=False)
             
-        filename = "Netflixok.txt" if service.lower() == "netflix" else "Steamok.txt"
+        lines = [line.strip() for line in accounts_raw.split("\n") if line.strip()]
         
-        try:
-            with open(filename, "a", encoding="utf-8") as f:
-                f.write("\n" + accounts.strip() + "\n")
+        if service.lower() == "steam":
+            STOK_DATA["steam"].extend(lines)
+        else:
+            STOK_DATA["netflix"].extend(lines)
+            
+        success = run_async(write_github_stock())
+        
+        if success:
             return render_template_string(HTML_PAGE, message=f"Successfully added stock to {service}!", success=True)
-        except Exception as e:
-            return render_template_string(HTML_PAGE, message=f"Error: {e}", success=False)
+        else:
+            return render_template_string(HTML_PAGE, message="GitHub save failed! Check Token.", success=False)
 
     return render_template_string(HTML_PAGE)
 
@@ -108,9 +171,7 @@ def run_web_server():
     web_app.run(host='0.0.0.0', port=WEB_PORT)
 # =========================================================
 
-
 # ==================== TICKET VE MENÜLER ====================
-
 class TicketSelectMenu(discord.ui.Select):
     def __init__(self):
         options = [
@@ -181,7 +242,6 @@ class GiveawayView(discord.ui.View):
         await interaction.response.send_message("✅ You left the giveaway.", ephemeral=True)
 
 # ==================== BOT CLASS ====================
-
 class MyBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
@@ -200,9 +260,7 @@ class MyBot(commands.Bot):
     async def on_ready(self):
         print(f"[+] Logged in as {self.user.name} | Made By kaptan9021_2")
         await self.change_presence(activity=discord.Game(name="Made By kaptan9021_2"))
-        
         threading.Thread(target=run_web_server, daemon=True).start()
-        print(f"[+] Web Panel started on port {WEB_PORT}")
 
     async def on_member_join(self, member):
         role = member.guild.get_role(JOIN_ROLE)
@@ -250,27 +308,40 @@ def set_limit(user_id, type_):
     if user_id not in bot.cooldowns: bot.cooldowns[user_id] = {}
     bot.cooldowns[user_id][type_] = time.time()
 
-def pop_account(filename):
-    if not os.path.exists(filename): return None
-    with open(filename, "r", encoding="utf-8") as f:
-        lines = [line.strip() for line in f if line.strip()]
-    if not lines: return None
-    if "steam" in filename.lower() and len(lines) >= 2:
-        acc = f"{lines[0]}\n{lines[1]}"
-        lines = lines[2:]
-    else:
-        acc = lines[0]
-        lines = lines[1:]
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines) + ("\n" if lines else ""))
-    return acc
+async def get_available_account(service):
+    global STOK_DATA
+    async with STOK_LOCK:
+        if service == "steam":
+            lines = STOK_DATA.get("steam", [])
+            for i in range(0, len(lines), 2):
+                if i+1 < len(lines):
+                    acc = f"{lines[i]}\n{lines[i+1]}"
+                    if acc not in STOK_DATA.get("used", []):
+                        STOK_DATA["used"].append(acc)
+                        await write_github_stock()
+                        return acc
+        elif service == "netflix":
+            lines = STOK_DATA.get("netflix", [])
+            for line in lines:
+                if line not in STOK_DATA.get("used", []):
+                    STOK_DATA["used"].append(line)
+                    await write_github_stock()
+                    return line
+    return None
 
-def count_accounts(filename):
-    if not os.path.exists(filename): return 0
-    with open(filename, "r", encoding="utf-8") as f:
-        lines = [l for l in f if l.strip()]
-    if "steam" in filename.lower(): return len(lines) // 2
-    return len(lines)
+async def count_stock(service):
+    async with STOK_LOCK:
+        used = STOK_DATA.get("used", [])
+        if service == "steam":
+            lines = STOK_DATA.get("steam", [])
+            count = 0
+            for i in range(0, len(lines), 2):
+                if i+1 < len(lines) and f"{lines[i]}\n{lines[i+1]}" not in used:
+                    count += 1
+            return count
+        elif service == "netflix":
+            return sum(1 for line in STOK_DATA.get("netflix", []) if line not in used)
+    return 0
 
 # ==================== SLASH KOMUTLARI ====================
 
@@ -282,8 +353,8 @@ async def ticket_cmd(interaction: discord.Interaction):
 @bot.tree.command(name="stock", description="Check available stock")
 async def stock_cmd(interaction: discord.Interaction):
     await interaction.response.defer()
-    nf_count = count_accounts("Netflixok.txt")
-    st_count = count_accounts("Steamok.txt")
+    nf_count = await count_stock("netflix")
+    st_count = await count_stock("steam")
     embed = discord.Embed(title="📦 Current Stock", color=discord.Color.green())
     embed.add_field(name="Netflix", value=f"**{nf_count}** accounts", inline=True)
     embed.add_field(name="Steam", value=f"**{st_count}** accounts", inline=True)
@@ -314,7 +385,7 @@ async def generate_cmd(interaction: discord.Interaction, service: app_commands.C
         limit_ok, time_left = check_limit(interaction.user.id, f"steam_{plan_val}")
         if not limit_ok: return await interaction.followup.send(f"❌ Limit reached. Try again in {time_left//3600}h.", ephemeral=True)
         
-        acc = pop_account("Steamok.txt")
+        acc = await get_available_account("steam")
         if not acc: return await interaction.followup.send("❌ Out of stock!", ephemeral=True)
         
         set_limit(interaction.user.id, f"steam_{plan_val}")
@@ -330,7 +401,7 @@ async def generate_cmd(interaction: discord.Interaction, service: app_commands.C
         limit_ok, time_left = check_limit(interaction.user.id, "netflix")
         if not limit_ok: return await interaction.followup.send(f"❌ Limit reached. Try again in {time_left//3600}h.", ephemeral=True)
         
-        acc = pop_account("Netflixok.txt")
+        acc = await get_available_account("netflix")
         if not acc: return await interaction.followup.send("❌ Out of stock!", ephemeral=True)
 
         set_limit(interaction.user.id, "netflix")
@@ -548,7 +619,5 @@ async def on_message(message):
 
 # ==================== ÇALIŞTIR ====================
 if __name__ == "__main__":
-    if not TOKEN or not OWNER_ID or not WEB_PASSWORD:
-        print("❌ HATA: .env dosyasında DISCORD_TOKEN, OWNER_ID veya WEB_PASSWORD eksik!")
-        exit()
-    bot.run(TOKEN)
+    if not TOKEN or not OWNER_ID or not WEB_PASSWORD or not GITHUB_TOKEN or not GITHUB_REPO:
+        print("❌ HATA: Eksik Çevre Değişkenleri! (DISCORD_TOKEN, OWNER_ID, WEB_PASSWORD, GITHUB_TOKEN, GITHUB_REPO)")
