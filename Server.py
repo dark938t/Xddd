@@ -19,7 +19,7 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID"))
 WEB_PASSWORD = os.getenv("WEB_PASSWORD", "ravex123")
-WEB_PORT = int(os.getenv("PORT", 8080))
+WEB_PORT = int(os.getenv("PORT", 10000))
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO = os.getenv("GITHUB_REPO") 
