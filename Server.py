@@ -23,7 +23,13 @@ WEB_PORT = int(os.getenv("PORT", 10000))
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO = os.getenv("GITHUB_REPO") 
-GITHUB_FILE = "stok.json" 
+
+# STOK DOSYALARI (Normal artık stok.json kullanıyor)
+FILES = {
+    "normal": "stok.json",
+    "premium": "Premiumstok.json",
+    "exclusive": "Exclusivestok.json"
+}
 
 STAFF_ROLES = [1566432003560181891, 1560996761659515003]
 EXCLUSIVE_ROLE = 1560688907199184986
@@ -36,16 +42,15 @@ PREMIUM_EXCLUSIVE_CHANNEL = 1566423682371420273
 
 pending_netflix = {} 
 approved_netflix = {}
-
-# GitHub yazma işlemleri için kilit
 github_lock = asyncio.Lock()
 
 # ==================== GITHUB VERİTABANI ====================
 async def github_get_headers():
     return {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
 
-async def read_github_stock():
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE}"
+async def read_github_stock(plan_type):
+    filename = FILES.get(plan_type.lower(), FILES["normal"])
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{filename}"
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=await github_get_headers()) as resp:
             if resp.status == 200:
@@ -54,8 +59,9 @@ async def read_github_stock():
                 return json.loads(content), data['sha']
             return {"steam": [], "netflix": [], "used": []}, None
 
-async def write_github_stock(stock_data, sha):
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE}"
+async def write_github_stock(plan_type, stock_data, sha):
+    filename = FILES.get(plan_type.lower(), FILES["normal"])
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{filename}"
     content = base64.b64encode(json.dumps(stock_data, indent=2).encode('utf-8')).decode('utf-8')
     payload = {"message": "Bot stok guncellemesi", "content": content}
     if sha: payload["sha"] = sha
@@ -67,21 +73,19 @@ async def write_github_stock(stock_data, sha):
                 return False
             return True
 
-async def add_stock_safely(service, new_accounts):
+async def add_stock_safely(plan_type, service, new_accounts):
     async with github_lock:
-        max_retries = 3
-        for attempt in range(max_retries):
-            stock, sha = await read_github_stock()
+        for _ in range(3):
+            stock, sha = await read_github_stock(plan_type)
             if service.lower() == "steam": stock["steam"].extend(new_accounts)
             else: stock["netflix"].extend(new_accounts)
-            success = await write_github_stock(stock, sha)
-            if success: return True
+            if await write_github_stock(plan_type, stock, sha): return True
             await asyncio.sleep(1)
         return False
 
-async def get_available_account(service):
+async def get_available_account(plan_type, service):
     async with github_lock:
-        stock, sha = await read_github_stock()
+        stock, sha = await read_github_stock(plan_type)
         if service == "steam":
             lines = stock.get("steam", [])
             for i in range(0, len(lines), 2):
@@ -89,19 +93,19 @@ async def get_available_account(service):
                     acc = f"{lines[i]}\n{lines[i+1]}"
                     if acc not in stock.get("used", []):
                         stock["used"].append(acc)
-                        await write_github_stock(stock, sha)
+                        await write_github_stock(plan_type, stock, sha)
                         return acc
         elif service == "netflix":
             lines = stock.get("netflix", [])
             for line in lines:
                 if line not in stock.get("used", []):
                     stock["used"].append(line)
-                    await write_github_stock(stock, sha)
+                    await write_github_stock(plan_type, stock, sha)
                     return line
         return None
 
-async def count_stock(service):
-    stock, _ = await read_github_stock()
+async def count_stock(plan_type, service):
+    stock, _ = await read_github_stock(plan_type)
     used = stock.get("used", [])
     if service == "steam":
         lines = stock.get("steam", [])
@@ -111,7 +115,7 @@ async def count_stock(service):
 
 # ==================== WEB SİTESİ (FLASK) ====================
 web_app = Flask(__name__)
-HTML_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ravex Panel</title><style>body{font-family:sans-serif;background:#121212;color:#fff;padding:20px}.container{max-width:600px;margin:auto;background:#1e1e1e;padding:20px;border-radius:10px}input,select,textarea{width:100%;padding:10px;margin:5px 0;background:#2b2b2b;color:white;border:1px solid #333;box-sizing:border-box}button{width:100%;padding:10px;background:#7289da;color:white;border:none;margin-top:10px;cursor:pointer}.msg{margin-top:10px;text-align:center}</style></head><body><div class="container"><h2>📦 Ravex Panel</h2><form method="POST"><label>Password</label><input type="password" name="password" required><label>Service</label><select name="service"><option value="steam">Steam</option><option value="netflix">Netflix</option></select><label>Accounts (One per line)</label><textarea name="accounts" rows="8" required></textarea><button type="submit">Add Stock</button></form>{% if message %}<div class="msg" style="color:{% if success %}lightgreen{% else %}red{% endif %};">{{ message }}</div>{% endif %}</div></body></html>"""
+HTML_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ravex Panel</title><style>body{font-family:sans-serif;background:#121212;color:#fff;padding:20px}.container{max-width:600px;margin:auto;background:#1e1e1e;padding:20px;border-radius:10px}input,select,textarea{width:100%;padding:10px;margin:5px 0;background:#2b2b2b;color:white;border:1px solid #333;box-sizing:border-box}button{width:100%;padding:10px;background:#7289da;color:white;border:none;margin-top:10px;cursor:pointer}.msg{margin-top:10px;text-align:center}</style></head><body><div class="container"><h2 style="text-align:center;">📦 Ravex Panel</h2><form method="POST"><label>Password</label><input type="password" name="password" required><label>Plan Türü</label><select name="plan"><option value="normal">Normal</option><option value="premium">Premium</option><option value="exclusive">Exclusive</option></select><label>Service</label><select name="service"><option value="steam">Steam</option><option value="netflix">Netflix</option></select><label>Accounts (One per line)</label><textarea name="accounts" rows="8" required></textarea><button type="submit">Add Stock</button></form>{% if message %}<div class="msg" style="color:{% if success %}lightgreen{% else %}red{% endif %};">{{ message }}</div>{% endif %}</div></body></html>"""
 
 def run_async(coro):
     loop = asyncio.new_event_loop()
@@ -123,11 +127,11 @@ def index():
     if request.method == 'POST':
         if request.form.get('password') != WEB_PASSWORD:
             return render_template_string(HTML_PAGE, message="Incorrect password!", success=False)
-        service, accounts_raw = request.form.get('service'), request.form.get('accounts')
+        plan_type, service, accounts_raw = request.form.get('plan'), request.form.get('service'), request.form.get('accounts')
         if not accounts_raw.strip(): return render_template_string(HTML_PAGE, message="Empty!", success=False)
         lines = [line.strip() for line in accounts_raw.split("\n") if line.strip()]
-        success = run_async(add_stock_safely(service, lines))
-        return render_template_string(HTML_PAGE, message="Added successfully!" if success else "GitHub save failed!", success=success)
+        success = run_async(add_stock_safely(plan_type, service, lines))
+        return render_template_string(HTML_PAGE, message=f"Added to {plan_type.capitalize()}!" if success else "GitHub save failed!", success=success)
     return render_template_string(HTML_PAGE)
 
 def run_web_server():
@@ -241,12 +245,16 @@ async def ticket_cmd(interaction: discord.Interaction):
 
 @bot.tree.command(name="stock", description="Check stock")
 async def stock_cmd(interaction: discord.Interaction):
-    await interaction.response.defer() # 3 saniye timeout'unu engeller
+    await interaction.response.defer() 
     try:
-        nf, st = await count_stock("netflix"), await count_stock("steam")
+        nf_n = await count_stock("normal", "netflix"); st_n = await count_stock("normal", "steam")
+        nf_p = await count_stock("premium", "netflix"); st_p = await count_stock("premium", "steam")
+        nf_e = await count_stock("exclusive", "netflix"); st_e = await count_stock("exclusive", "steam")
+        
         embed = discord.Embed(title="📦 Current Stock", color=discord.Color.green())
-        embed.add_field(name="Netflix", value=f"**{nf}**", inline=True)
-        embed.add_field(name="Steam", value=f"**{st}**", inline=True)
+        embed.add_field(name="💎 Premium", value=f"Netflix: **{nf_p}** | Steam: **{st_p}**", inline=False)
+        embed.add_field(name="👑 Exclusive", value=f"Steam: **{st_e}** | Netflix: **{nf_e}**", inline=False)
+        embed.add_field(name="🟢 Normal", value=f"Steam: **{st_n}** | Netflix: **{nf_n}**", inline=False)
         await interaction.followup.send(embed=embed)
     except Exception as e: await interaction.followup.send(f"❌ Error: {e}")
 
@@ -258,13 +266,13 @@ async def generate_cmd(interaction: discord.Interaction, service: app_commands.C
     if pln == "premium" and PREMIUM_ROLE not in user_roles: return await interaction.response.send_message("❌ No Premium role.", ephemeral=True)
     if pln == "exclusive" and EXCLUSIVE_ROLE not in user_roles: return await interaction.response.send_message("❌ No Exclusive role.", ephemeral=True)
     
-    await interaction.response.defer() # 3 saniye timeout'unu engeller
+    await interaction.response.defer() 
     try:
         limit_ok, t_left = check_limit(interaction.user.id, f"{svc}_{pln}")
         if not limit_ok: return await interaction.followup.send(f"❌ Limit reached. Wait {t_left//3600}h.", ephemeral=True)
         
-        acc = await get_available_account(svc)
-        if not acc: return await interaction.followup.send("❌ Out of stock!", ephemeral=True)
+        acc = await get_available_account(pln, svc)
+        if not acc: return await interaction.followup.send(f"❌ {pln.capitalize()} out of stock for {svc}!", ephemeral=True)
         
         set_limit(interaction.user.id, f"{svc}_{pln}")
         limit_max = 100 if pln == "exclusive" else (10 if pln == "premium" else 3)
@@ -277,7 +285,7 @@ async def generate_cmd(interaction: discord.Interaction, service: app_commands.C
             await interaction.followup.send(f"✅ Generated, Wait 20 minutes.")
             owner = await bot.fetch_user(OWNER_ID)
             if owner:
-                embed = discord.Embed(title="🎬 Netflix Request", color=discord.Color.red())
+                embed = discord.Embed(title=f"🎬 Netflix Request ({pln.capitalize()})", color=discord.Color.red())
                 embed.add_field(name="User", value=f"{interaction.user.mention}", inline=False); embed.add_field(name="Acc", value=f"```{acc}```", inline=False)
                 embed.set_footer(text="Reply: .okey @user"); await owner.send(embed=embed)
     except discord.Forbidden: await interaction.followup.send("❌ DMs closed.", ephemeral=True)
@@ -331,7 +339,6 @@ async def premium_cmd(interaction: discord.Interaction, user: discord.Member):
     if role:
         try: await user.add_roles(role); await interaction.followup.send("✅ Done.")
         except: await interaction.followup.send("❌ Role Error.")
-    else: await interaction.followup.send("❌ Role not found.")
 
 @bot.tree.command(name="exclusive", description="Give Exclusive")
 async def exclusive_cmd(interaction: discord.Interaction, user: discord.Member):
@@ -341,7 +348,6 @@ async def exclusive_cmd(interaction: discord.Interaction, user: discord.Member):
     if role:
         try: await user.add_roles(role); await interaction.followup.send("✅ Done.")
         except: await interaction.followup.send("❌ Role Error.")
-    else: await interaction.followup.send("❌ Role not found.")
 
 @bot.tree.command(name="ban", description="Ban member")
 async def ban_cmd(interaction: discord.Interaction, member: discord.Member, reason: str = "None"):
