@@ -37,7 +37,7 @@ PREMIUM_EXCLUSIVE_CHANNEL = 1566423682371420273
 pending_netflix = {} 
 approved_netflix = {}
 
-# GitHub'a aynı anda yazılmasını engelleyen kilit sistemi
+# GitHub yazma işlemleri için kilit
 github_lock = asyncio.Lock()
 
 # ==================== GITHUB VERİTABANI ====================
@@ -67,29 +67,21 @@ async def write_github_stock(stock_data, sha):
                 return False
             return True
 
-# KİLİTLİ EKLEME FONKSİYONU (Veri kaybını önler)
 async def add_stock_safely(service, new_accounts):
-    async with github_lock: # Kilit devrede
+    async with github_lock:
         max_retries = 3
         for attempt in range(max_retries):
             stock, sha = await read_github_stock()
-            
-            if service.lower() == "steam":
-                stock["steam"].extend(new_accounts)
-            else:
-                stock["netflix"].extend(new_accounts)
-                
+            if service.lower() == "steam": stock["steam"].extend(new_accounts)
+            else: stock["netflix"].extend(new_accounts)
             success = await write_github_stock(stock, sha)
-            if success:
-                return True
+            if success: return True
             await asyncio.sleep(1)
         return False
 
-# KİLİTLİ HESAP ALMA FONKSİYONU
 async def get_available_account(service):
-    async with github_lock: # Kilit devrede
+    async with github_lock:
         stock, sha = await read_github_stock()
-        
         if service == "steam":
             lines = stock.get("steam", [])
             for i in range(0, len(lines), 2):
@@ -107,6 +99,14 @@ async def get_available_account(service):
                     await write_github_stock(stock, sha)
                     return line
         return None
+
+async def count_stock(service):
+    stock, _ = await read_github_stock()
+    used = stock.get("used", [])
+    if service == "steam":
+        lines = stock.get("steam", [])
+        return sum(1 for i in range(0, len(lines), 2) if i+1 < len(lines) and f"{lines[i]}\n{lines[i+1]}" not in used)
+    return sum(1 for line in stock.get("netflix", []) if line not in used)
 # =========================================================
 
 # ==================== WEB SİTESİ (FLASK) ====================
@@ -125,10 +125,7 @@ def index():
             return render_template_string(HTML_PAGE, message="Incorrect password!", success=False)
         service, accounts_raw = request.form.get('service'), request.form.get('accounts')
         if not accounts_raw.strip(): return render_template_string(HTML_PAGE, message="Empty!", success=False)
-            
         lines = [line.strip() for line in accounts_raw.split("\n") if line.strip()]
-        
-        # Kilitli ve güvenli ekleme fonksiyonu
         success = run_async(add_stock_safely(service, lines))
         return render_template_string(HTML_PAGE, message="Added successfully!" if success else "GitHub save failed!", success=success)
     return render_template_string(HTML_PAGE)
@@ -237,14 +234,6 @@ def set_limit(user_id, type_):
     if user_id not in bot.cooldowns: bot.cooldowns[user_id] = {}
     bot.cooldowns[user_id][type_] = time.time()
 
-async def count_stock(service):
-    stock, _ = await read_github_stock()
-    used = stock.get("used", [])
-    if service == "steam":
-        lines = stock.get("steam", [])
-        return sum(1 for i in range(0, len(lines), 2) if i+1 < len(lines) and f"{lines[i]}\n{lines[i+1]}" not in used)
-    return sum(1 for line in stock.get("netflix", []) if line not in used)
-
 # ==================== SLASH KOMUTLARI ====================
 @bot.tree.command(name="ticket", description="Open a ticket")
 async def ticket_cmd(interaction: discord.Interaction):
@@ -252,11 +241,14 @@ async def ticket_cmd(interaction: discord.Interaction):
 
 @bot.tree.command(name="stock", description="Check stock")
 async def stock_cmd(interaction: discord.Interaction):
-    await interaction.response.defer()
-    nf, st = await count_stock("netflix"), await count_stock("steam")
-    embed = discord.Embed(title="📦 Current Stock", color=discord.Color.green())
-    embed.add_field(name="Netflix", value=f"**{nf}**", inline=True); embed.add_field(name="Steam", value=f"**{st}**", inline=True)
-    await interaction.followup.send(embed=embed)
+    await interaction.response.defer() # 3 saniye timeout'unu engeller
+    try:
+        nf, st = await count_stock("netflix"), await count_stock("steam")
+        embed = discord.Embed(title="📦 Current Stock", color=discord.Color.green())
+        embed.add_field(name="Netflix", value=f"**{nf}**", inline=True)
+        embed.add_field(name="Steam", value=f"**{st}**", inline=True)
+        await interaction.followup.send(embed=embed)
+    except Exception as e: await interaction.followup.send(f"❌ Error: {e}")
 
 @bot.tree.command(name="generate", description="Generate account")
 @app_commands.choices(service=[app_commands.Choice(name="Netflix", value="netflix"), app_commands.Choice(name="Steam", value="steam")], plan=[app_commands.Choice(name="Normal", value="normal"), app_commands.Choice(name="Premium", value="premium"), app_commands.Choice(name="Exclusive", value="exclusive")])
@@ -265,16 +257,18 @@ async def generate_cmd(interaction: discord.Interaction, service: app_commands.C
     if pln in ["premium", "exclusive"] and interaction.channel_id != PREMIUM_EXCLUSIVE_CHANNEL: return await interaction.response.send_message(f"❌ Use in <#{PREMIUM_EXCLUSIVE_CHANNEL}>.", ephemeral=True)
     if pln == "premium" and PREMIUM_ROLE not in user_roles: return await interaction.response.send_message("❌ No Premium role.", ephemeral=True)
     if pln == "exclusive" and EXCLUSIVE_ROLE not in user_roles: return await interaction.response.send_message("❌ No Exclusive role.", ephemeral=True)
-    await interaction.response.defer()
-    limit_ok, t_left = check_limit(interaction.user.id, f"{svc}_{pln}")
-    if not limit_ok: return await interaction.followup.send(f"❌ Limit reached. Wait {t_left//3600}h.", ephemeral=True)
     
-    acc = await get_available_account(svc) # Kilitli fonksiyon çağırıldı
-    if not acc: return await interaction.followup.send("❌ Out of stock!", ephemeral=True)
-    
-    set_limit(interaction.user.id, f"{svc}_{pln}")
-    limit_max = 100 if pln == "exclusive" else (10 if pln == "premium" else 3)
+    await interaction.response.defer() # 3 saniye timeout'unu engeller
     try:
+        limit_ok, t_left = check_limit(interaction.user.id, f"{svc}_{pln}")
+        if not limit_ok: return await interaction.followup.send(f"❌ Limit reached. Wait {t_left//3600}h.", ephemeral=True)
+        
+        acc = await get_available_account(svc)
+        if not acc: return await interaction.followup.send("❌ Out of stock!", ephemeral=True)
+        
+        set_limit(interaction.user.id, f"{svc}_{pln}")
+        limit_max = 100 if pln == "exclusive" else (10 if pln == "premium" else 3)
+        
         if svc == "steam":
             await interaction.user.send(f"🎁 **Steam ({pln.capitalize()})**\n\n```\n{acc}\n```\n\n*Limit: 1/{limit_max}*")
             await interaction.followup.send(f"Generated, Check DMs and Vouch <#{VOUCH_CHANNEL}>")
@@ -286,7 +280,8 @@ async def generate_cmd(interaction: discord.Interaction, service: app_commands.C
                 embed = discord.Embed(title="🎬 Netflix Request", color=discord.Color.red())
                 embed.add_field(name="User", value=f"{interaction.user.mention}", inline=False); embed.add_field(name="Acc", value=f"```{acc}```", inline=False)
                 embed.set_footer(text="Reply: .okey @user"); await owner.send(embed=embed)
-    except: await interaction.followup.send("❌ DMs closed.", ephemeral=True)
+    except discord.Forbidden: await interaction.followup.send("❌ DMs closed.", ephemeral=True)
+    except Exception as e: await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
 
 @bot.tree.command(name="delete", description="Delete messages")
 async def delete_cmd(interaction: discord.Interaction, amount: int, empty_only: bool = True):
@@ -307,16 +302,19 @@ async def delete_cmd(interaction: discord.Interaction, amount: int, empty_only: 
 async def giveaway_cmd(interaction: discord.Interaction, channel: discord.TextChannel, prize: str, duration: str, winners: int):
     if not any(r.id in STAFF_ROLES for r in interaction.user.roles) and interaction.user.id != OWNER_ID: return await interaction.response.send_message("❌ Staff only.", ephemeral=True)
     await interaction.response.defer(ephemeral=True)
-    sec = int(duration[:-1]) * (60 if duration.endswith("m") else 3600 if duration.endswith("h") else 86400 if duration.endswith("d") else 1)
-    view = GiveawayView(prize, winners, time.time() + sec, interaction.user.id)
-    msg = await channel.send(embed=view.get_embed(), view=view); bot.active_giveaways[msg.id] = view
-    await interaction.followup.send(f"✅ Giveaway started in {channel.mention}", ephemeral=True); await asyncio.sleep(sec)
-    if msg.id in bot.active_giveaways:
-        g = bot.active_giveaways.pop(msg.id); g.stop()
-        if not g.entries: await channel.send(f"❌ No participants for {prize}.")
-        else:
-            wins = random.sample(list(g.entries), min(winners, len(g.entries)))
-            await channel.send(f"🎉 **Ended!**\nPrize: **{prize}**\nWinners: {', '.join([f'<@{w}>' for w in wins])}")
+    try:
+        sec = int(duration[:-1]) * (60 if duration.endswith("m") else 3600 if duration.endswith("h") else 86400 if duration.endswith("d") else 1)
+        view = GiveawayView(prize, winners, time.time() + sec, interaction.user.id)
+        msg = await channel.send(embed=view.get_embed(), view=view); bot.active_giveaways[msg.id] = view
+        await interaction.followup.send(f"✅ Giveaway started in {channel.mention}", ephemeral=True)
+        await asyncio.sleep(sec)
+        if msg.id in bot.active_giveaways:
+            g = bot.active_giveaways.pop(msg.id); g.stop()
+            if not g.entries: await channel.send(f"❌ No participants for {prize}.")
+            else:
+                wins = random.sample(list(g.entries), min(winners, len(g.entries)))
+                await channel.send(f"🎉 **Ended!**\nPrize: **{prize}**\nWinners: {', '.join([f'<@{w}>' for w in wins])}")
+    except Exception as e: await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
 
 @bot.tree.command(name="unlocklimit", description="Reset limit")
 async def unlocklimit_cmd(interaction: discord.Interaction, user: discord.Member):
@@ -333,6 +331,7 @@ async def premium_cmd(interaction: discord.Interaction, user: discord.Member):
     if role:
         try: await user.add_roles(role); await interaction.followup.send("✅ Done.")
         except: await interaction.followup.send("❌ Role Error.")
+    else: await interaction.followup.send("❌ Role not found.")
 
 @bot.tree.command(name="exclusive", description="Give Exclusive")
 async def exclusive_cmd(interaction: discord.Interaction, user: discord.Member):
@@ -342,6 +341,7 @@ async def exclusive_cmd(interaction: discord.Interaction, user: discord.Member):
     if role:
         try: await user.add_roles(role); await interaction.followup.send("✅ Done.")
         except: await interaction.followup.send("❌ Role Error.")
+    else: await interaction.followup.send("❌ Role not found.")
 
 @bot.tree.command(name="ban", description="Ban member")
 async def ban_cmd(interaction: discord.Interaction, member: discord.Member, reason: str = "None"):
@@ -369,14 +369,11 @@ async def on_message(message):
     if message.author.bot or not isinstance(message.channel, discord.DMChannel) or message.author.id != OWNER_ID: return
     content = message.content.lower().strip()
     
-    # BUG FIX: Etiketten ID çekme mantığı düzeltildi
     parts = message.content.split("<@")
     if len(parts) > 1:
         user_id_str = parts[1].split(">")[0].replace("!", "")
-        try:
-            user_id = int(user_id_str)
-        except ValueError:
-            return await message.reply("❌ Geçersiz kullanıcı etiketi.")
+        try: user_id = int(user_id_str)
+        except ValueError: return await message.reply("❌ Geçersiz kullanıcı etiketi.")
     else:
         return await message.reply("❌ Kullanım: `.okey @kullanıcı` veya `.send @kullanıcı`")
 
